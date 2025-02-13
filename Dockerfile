@@ -14,6 +14,10 @@ RUN npm install
 COPY . .
 
 # 构建应用
+# 设置环境变量为生产环境
+ENV NODE_ENV=production
+ENV VUE_APP_API_BASE_URL="https://news.ykcode.top/api/"
+
 RUN npm run build
 
 # 使用官方的 Nginx 镜像作为运行环境
@@ -23,7 +27,7 @@ FROM nginx:stable-alpine as production-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
 # 暴露端口
-EXPOSE 80
+EXPOSE 8100
 
 # 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"]

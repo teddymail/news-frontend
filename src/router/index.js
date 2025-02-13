@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NewsList from '@/components/NewsList.vue'
 import CategrayNews from "@/components/CategrayNews.vue";
+import HotIndustryRanking from "@/components/HotIndustryRanking.vue";
 
 const routes = [
     {
@@ -11,7 +12,12 @@ const routes = [
     {
         path: '/source/:source',
         name: 'CategrayNews',
-        component: CategrayNews,
+        component: CategrayNews
+    },
+    {
+        path: '/ranking',
+        name: 'HotIndustryRanking',
+        component: HotIndustryRanking,
     }
 ]
 

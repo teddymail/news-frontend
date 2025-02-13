@@ -6,8 +6,8 @@
       股票新闻聚合
     </div>
     <nav>
-      <a href="/">首页</a> <!-- 修改: 将 href="#" 改为 href="/" -->
-      <a href="#">财经新闻</a>
+      <a href="/">首页</a>
+      <a href="/ranking">热门行业排行榜</a>
       <a href="#">市场动态</a>
       <a href="#">关于我们</a>
     </nav>
