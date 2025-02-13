@@ -38,7 +38,7 @@
       </tbody>
     </table>
   </div>
-  <div class="news-section">
+  <div class="news-container">
     <h2>行业跌幅排行榜</h2>
     <table class="industry-table">
       <thead>
