@@ -53,9 +53,9 @@ const timeAgo = (publishTime) => {
 }
 
 // 添加: 打开链接的方法
-const openLink = (link) => {
-  window.open(link, '_blank')
-}
+// const openLink = (link) => {
+//   window.open(link, '_blank')
+// }
 
 </script>
 
@@ -71,9 +71,7 @@ const openLink = (link) => {
         <h2>{{ category.title }}</h2>
       </router-link>
       <div v-for="article in newsListByCategory[category.title]" :key="article.id" class="news-item">
-        <h3>
-          <div class="news-link" @click="openLink(article.link)">{{ article.title }}</div>
-        </h3>
+        <router-link class="no-underline" :to="`/newsdetail/${article.id}`"><h3>{{ article.title }}</h3></router-link>
         <p class="content">{{ article.content ? article.content.slice(0, 80) + (article.content.length > 50 ? '...' : '') : '' }}</p>
         <p></p>
         <p>

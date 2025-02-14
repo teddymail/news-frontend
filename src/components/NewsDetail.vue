@@ -1,11 +1,11 @@
 <template>
-  <div class="news-container">
+  <div class="news-detail-container">
     <div class="news-content">
       <!-- 新闻标题 -->
       <div class="news-title">{{ newsDetail.title }}</div>
       <!-- 新闻内容 -->
       <div class="news-detail">
-        <p>{{newsDetail.content}}</p>
+        <p>{{ newsDetail.content }}</p>
       </div>
       <!-- 查看原文 -->
       <div class="view-original">
@@ -29,7 +29,7 @@
 import {v4 as uuidv4} from 'uuid'; // 引入 uuid 库
 import axios from 'axios';
 import {apiClient} from '@/apiClient' // 使用全局定义的 apiClient
-import { marked } from 'marked';
+import {marked} from 'marked';
 
 export default {
   data() {
@@ -60,7 +60,7 @@ export default {
           "3. 给出初级入门投资前景，涨幅高的潜力股票，你得资金只有3W，只玩国内科创板的条件，如果不适合开头直接给出不适合投资的意见即可。\n" +
           "4. 给出合理的投资事件和买入时机和抛出时机，并给出理由\n" +
           "5. 今天看到以下新闻内容：" + this.newsDetail.content + "\n" +
-          "6. 从中能发现利好哪些股票？ 适不适合低门槛我这个资金量的人玩？  ";
+          "6. 从中能发现利好哪些股票？给出具体股票名字 没有就不给即可 适不适合低门槛我这个资金量的人玩？  ";
       this.sendMessage();
     },
     async sendMessage() {
@@ -79,14 +79,16 @@ export default {
       // Create the user message element
       const userMessageEle = document.createElement("div");
       userMessageEle.className = "chat-message user";
-      userMessageEle.innerHTML = `
+      if (this.messages.length > 1) {
+        userMessageEle.innerHTML = `
 <div class="message-header">
   <img src="https://img.icons8.com/ios/50/000000/user-male.png" class="avatar" alt="User">
   <span class="timestamp">${time}</span>
 </div>
 <div class="message-bubble">${this.renderMarkdown(this.userInput)}</div>
 `;
-      document.getElementById("chatDisplay").appendChild(userMessageEle);
+        document.getElementById("chatDisplay").appendChild(userMessageEle);
+      }
 
       // Display the loading message
       const loadingMessage = document.createElement("div");
@@ -179,13 +181,13 @@ export default {
 
 <style>
 /* 内容容器 */
-.news-container {
+.news-detail-container {
   display: flex;
-  justify-content: center;  /* 居中 */
+  justify-content: center; /* 居中 */
   padding: 20px;
-  width: 100%;  /* 占满整个屏幕 */
+  width: 100%; /* 占满整个屏幕 */
   max-width: 1200px; /* 最大宽度 */
-  margin: 0 auto;  /* 自动居中 */
+  margin: 0 auto; /* 自动居中 */
 }
 
 
