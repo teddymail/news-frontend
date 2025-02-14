@@ -19,7 +19,7 @@
       </div>
       <div class="chat-input-area">
         <input type="text" class="chat-input" id="userInput" placeholder="请输入您的问题..." v-model="userInput">
-        <button class="chat-submit" @click="sendMessage">发送</button>
+        <button class="chat-submit" @click="sendMessage" :disabled="isSending" :class="{ 'disabled': isSending }">发送</button>
       </div>
     </div>
   </div>
@@ -38,7 +38,8 @@ export default {
       responseMessage: '',
       messages: [], // 添加 messages 数组
       newsDetail: {}, // 添加 newsDetail 对象
-      userInput: '' // 添加 userInput 数据属性
+      userInput: '', // 添加 userInput 数据属性
+      isSending: false // 添加 isSending 属性
     };
   },
   created() {
@@ -64,14 +65,16 @@ export default {
       this.sendMessage();
     },
     async sendMessage() {
+      if (this.userInput.trim() === "") return;
+
+      this.isSending = true; // 发送开始时禁用按钮
+
       const userMessage = {
         id: this.generateSpecificUUID(),
         role: 'user',
         content: this.userInput,
         timestamp: Date.now(),
       };
-
-      if (this.userInput.trim() === "") return;
 
       // Get the current time
       const time = this.getCurrentTime();
@@ -148,15 +151,12 @@ export default {
         // Scroll to the bottom
         chatDisplay.scrollTop = chatDisplay.scrollHeight;
 
+        this.isSending = false; // 发送成功后启用按钮
       } catch (error) {
         console.error('请求失败:', error);
         this.responseMessage = '请求失败，请稍后再试。';
 
-        // Remove the loading message in case of error
-        const chatDisplay = document.getElementById("chatDisplay");
-        if (chatDisplay.contains(loadingMessage)) {
-          chatDisplay.removeChild(loadingMessage);
-        }
+        this.isSending = false; // 发送失败后启用按钮
       }
     },
     generateSpecificUUID() {
@@ -336,5 +336,10 @@ export default {
 
 .chat-submit:hover {
   background-color: #FF0000;
+}
+
+.chat-submit.disabled {
+  background-color: #cccccc; /* 灰色 */
+  cursor: not-allowed;
 }
 </style>
