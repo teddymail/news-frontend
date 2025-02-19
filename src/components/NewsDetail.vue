@@ -34,7 +34,7 @@ import {marked} from 'marked';
 export default {
   data() {
     return {
-      apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU5MjNlNDQ0LTRkNWUtNGQ0OS04Y2Y5LTA0MzBjYTQ3OTIwMCJ9.qsS2WZzb3coiPpfFiuEkDF3oZoDLHNPAhAHFxCQcA6g',
+      apiKey: '',
       responseMessage: '',
       messages: [], // 添加 messages 数组
       newsDetail: {}, // 添加 newsDetail 对象
@@ -43,9 +43,29 @@ export default {
     };
   },
   created() {
+    this.getApiKey();
     this.fetchNewsDetail(); // 在组件创建时获取新闻详情
   },
   methods: {
+    // 请求https://chat.bncic.com.cn:10000/api/v1/auths/signin获取里面的token
+    async getApiKey() {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'Origin': 'chat.bncic.com.cn:10000',
+          'Referer': 'https://chat.bncic.com.cn:10000/'
+        };
+
+        const response = await axios.post(
+            'https://chat.bncic.com.cn:10000/api/v1/auths/signin',
+            {"email":"","password":""},
+            { headers }
+        );
+        this.apiKey = response.data.token;
+      } catch (error) {
+        console.error('获取API密钥失败:', error);
+      }
+    },
     async fetchNewsDetail() {
       try {
         const response = await apiClient.get(`v1/news/${this.$route.params.id}`);
@@ -96,7 +116,7 @@ export default {
       // Display the loading message
       const loadingMessage = document.createElement("div");
       loadingMessage.className = "loading-message";
-      loadingMessage.innerHTML = "ChatGPT 正在处理中...";
+      loadingMessage.innerHTML = "DeepSeek 正在处理中...";
       document.getElementById("chatDisplay").appendChild(loadingMessage);
 
       this.messages.push(userMessage);
@@ -109,13 +129,15 @@ export default {
               model: 'deepseek-r1:32b',
               messages: this.messages,
               chat_id: 'local',
-              session_id: 'kb_czCzoLJfNEwLbAAJE',
-              id: 'c27cf990-a0f7-49cc-8a46-f854e88d1cff',
+              session_id: 'oQr5QznyHT-Um_KuAAMd',
+              id: uuidv4(),
             },
             {
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.apiKey}`,
+                'Host': 'chat.bncic.com.cn:10000',
+                'Referer': 'https://chat.bncic.com.cn:10000/'
               },
             }
         );

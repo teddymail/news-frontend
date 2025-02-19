@@ -1,78 +1,82 @@
 <template>
   <div class="news-container">
     <h2>行业涨幅排行榜</h2>
-    <table class="industry-table">
-      <thead>
-      <tr>
-        <th>行业</th>
-        <th>指数</th>
-        <th>涨跌</th>
-        <th>涨幅</th>
-        <th>近5日涨幅</th>
-        <th>近20日涨幅</th>
-        <th>代表个股</th>
-        <th>最新价</th>
-        <th>个股涨跌</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-if="!upIndustries.length">
-        <td colspan="9">暂无数据</td>
-      </tr>
-      <tr v-for="industry in upIndustries" :key="industry.bd_code">
-        <td><a
-            :href="`https://stockapp.finance.qq.com/mstats/#mod=list&id=${industry.bd_code}&typename=${industry.bd_name}&sign=web`"
-            target="_blank">{{ industry.bd_name }}</a></td>
-        <td>{{ industry.bd_zxj }}</td>
-        <td :style="{ color: industry.bd_zd < 0 ? 'green' : 'red' }">{{ industry.bd_zd }}</td>
-        <td :style="{ color: industry.bd_zdf < 0 ? 'green' : 'red' }">{{ industry.bd_zdf }}%</td>
-        <td :style="{ color: industry.bd_zdf5 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf5 }}%</td>
-        <td :style="{ color: industry.bd_zdf20 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf20 }}%</td>
-        <td><a :href="`https://gu.qq.com/${industry.nzg_code}/gp`" target="_blank">{{ industry.nzg_name }}</a></td>
-        <td>{{ industry.nzg_zxj }}</td>
-        <td :style="{ color: industry.nzg_zd < 0 ? 'green' : 'red' }">{{ industry.nzg_zd }} ({{
-            industry.nzg_zdf
-          }}%)
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="industry-table">
+        <thead>
+        <tr>
+          <th class="responsive-header">行业</th>
+          <th class="responsive-header">指数</th>
+          <th class="responsive-header">涨跌</th>
+          <th class="responsive-header">涨幅</th>
+          <th class="responsive-header">近5日涨幅</th>
+          <th class="responsive-header">近20日涨幅</th>
+          <th class="responsive-header">代表个股</th>
+          <th class="responsive-header">最新价</th>
+          <th class="responsive-header">个股涨跌</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-if="!upIndustries.length">
+          <td colspan="9">暂无数据</td>
+        </tr>
+        <tr v-for="industry in upIndustries" :key="industry.bd_code">
+          <td><a
+              :href="`https://stockapp.finance.qq.com/mstats/#mod=list&id=${industry.bd_code}&typename=${industry.bd_name}&sign=web`"
+              target="_blank">{{ industry.bd_name }}</a></td>
+          <td>{{ industry.bd_zxj }}</td>
+          <td :style="{ color: industry.bd_zd < 0 ? 'green' : 'red' }">{{ industry.bd_zd }}</td>
+          <td :style="{ color: industry.bd_zdf < 0 ? 'green' : 'red' }">{{ industry.bd_zdf }}%</td>
+          <td :style="{ color: industry.bd_zdf5 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf5 }}%</td>
+          <td :style="{ color: industry.bd_zdf20 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf20 }}%</td>
+          <td><a :href="`https://gu.qq.com/${industry.nzg_code}/gp`" target="_blank">{{ industry.nzg_name }}</a></td>
+          <td>{{ industry.nzg_zxj }}</td>
+          <td :style="{ color: industry.nzg_zd < 0 ? 'green' : 'red' }">{{ industry.nzg_zd }} ({{
+              industry.nzg_zdf
+            }}%)
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="news-container">
     <h2>行业跌幅排行榜</h2>
-    <table class="industry-table">
-      <thead>
-      <tr>
-        <th>行业</th>
-        <th>指数</th>
-        <th>涨跌</th>
-        <th>跌幅</th>
-        <th>近5日跌幅</th>
-        <th>近20日跌幅</th>
-        <th>代表个股</th>
-        <th>最新价</th>
-        <th>个股涨跌</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="industry in downIndustries" :key="industry.bd_code">
-        <td><a
-            :href="`https://stockapp.finance.qq.com/mstats/#mod=list&id=${industry.bd_code}&typename=${industry.bd_name}&sign=web`"
-            target="_blank">{{ industry.bd_name }}</a></td>
-        <td>{{ industry.bd_zxj }}</td>
-        <td :style="{ color: industry.bd_zd < 0 ? 'green' : 'red' }">{{ industry.bd_zd }}</td>
-        <td :style="{ color: industry.bd_zdf < 0 ? 'green' : 'red' }">{{ industry.bd_zdf }}%</td>
-        <td :style="{ color: industry.bd_zdf5 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf5 }}%</td>
-        <td :style="{ color: industry.bd_zdf20 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf20 }}%</td>
-        <td><a :href="`https://gu.qq.com/${industry.nzg_code}/gp`" target="_blank">{{ industry.nzg_name }}</a></td>
-        <td>{{ industry.nzg_zxj }}</td>
-        <td :style="{ color: industry.nzg_zd < 0 ? 'green' : 'red' }">{{ industry.nzg_zd }} ({{
-            industry.nzg_zdf
-          }}%)
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="industry-table">
+        <thead>
+        <tr>
+          <th>行业</th>
+          <th>指数</th>
+          <th>涨跌</th>
+          <th>跌幅</th>
+          <th>近5日跌幅</th>
+          <th>近20日跌幅</th>
+          <th>代表个股</th>
+          <th>最新价</th>
+          <th>个股涨跌</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="industry in downIndustries" :key="industry.bd_code">
+          <td><a
+              :href="`https://stockapp.finance.qq.com/mstats/#mod=list&id=${industry.bd_code}&typename=${industry.bd_name}&sign=web`"
+              target="_blank">{{ industry.bd_name }}</a></td>
+          <td>{{ industry.bd_zxj }}</td>
+          <td :style="{ color: industry.bd_zd < 0 ? 'green' : 'red' }">{{ industry.bd_zd }}</td>
+          <td :style="{ color: industry.bd_zdf < 0 ? 'green' : 'red' }">{{ industry.bd_zdf }}%</td>
+          <td :style="{ color: industry.bd_zdf5 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf5 }}%</td>
+          <td :style="{ color: industry.bd_zdf20 < 0 ? 'green' : 'red' }">{{ industry.bd_zdf20 }}%</td>
+          <td><a :href="`https://gu.qq.com/${industry.nzg_code}/gp`" target="_blank">{{ industry.nzg_name }}</a></td>
+          <td>{{ industry.nzg_zxj }}</td>
+          <td :style="{ color: industry.nzg_zd < 0 ? 'green' : 'red' }">{{ industry.nzg_zd }} ({{
+              industry.nzg_zdf
+            }}%)
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -106,6 +110,10 @@
   align-items: center;
   padding: 30px;
   background-color: #f0f2f5;
+}
+
+.table-responsive {
+  overflow-x: auto;
 }
 
 .industry-table {
