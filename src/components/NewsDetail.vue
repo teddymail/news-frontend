@@ -61,7 +61,8 @@ export default {
             {"email":"","password":""},
             { headers }
         );
-        this.apiKey = response.token;
+        console.log(response.data)
+        this.apiKey = response.data.token;
       } catch (error) {
         console.error('获取API密钥失败:', error);
       }
