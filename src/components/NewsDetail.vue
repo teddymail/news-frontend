@@ -34,7 +34,7 @@ import {marked} from 'marked';
 export default {
   data() {
     return {
-      apiKey: '',
+      apiKey: localStorage.getItem('token'),
       responseMessage: '',
       messages: [], // 添加 messages 数组
       newsDetail: {}, // 添加 newsDetail 对象
@@ -43,7 +43,9 @@ export default {
     };
   },
   created() {
-    this.getApiKey();
+    if (!localStorage.getItem('token')) {
+      this.getApiKey();
+    }
     this.fetchNewsDetail(); // 在组件创建时获取新闻详情
   },
   methods: {
@@ -62,7 +64,9 @@ export default {
             { headers }
         );
         console.log(response.data)
+        localStorage.setItem('token', response.data.token, 3600 * 24)
         this.apiKey = response.data.token;
+
       } catch (error) {
         console.error('获取API密钥失败:', error);
       }
