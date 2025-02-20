@@ -52,12 +52,12 @@ export default {
       try {
         const headers = {
           'Content-Type': 'application/json',
-          'Origin': 'chat.bncic.com.cn:10000',
-          'Referer': 'https://chat.bncic.com.cn:10000/'
+          'Origin': 'https://chat.bncic.com.cn',
+          'Referer': 'https://chat.bncic.com.cn/auth'
         };
 
         const response = await axios.post(
-            'https://chat.bncic.com.cn:10000/api/v1/auths/signin',
+            'https://chat.bncic.com.cn/api/v1/auths/signin',
             {"email":"","password":""},
             { headers }
         );
@@ -124,8 +124,11 @@ export default {
       this.userInput = ''; // Clear the input box
 
       try {
+        if (!this.apiKey) {
+          await this.getApiKey(); // 确保在发送消息前获取 apiKey
+        }
         const response = await axios.post(
-            'https://chat.bncic.com.cn:10000/api/chat/completions',
+            'https://chat.bncic.com.cn/api/chat/completions',
             {
               model: 'deepseek-r1:32b',
               messages: this.messages,
@@ -140,26 +143,11 @@ export default {
                 'Host': 'chat.bncic.com.cn:10000',
                 'Referer': 'https://chat.bncic.com.cn:10000/'
               },
+              responseType: 'stream' // 设置响应类型为流
             }
         );
 
-        const assistantMessage = {
-          id: this.generateSpecificUUID(),
-          role: 'assistant',
-          content: response.data.choices[0].message.content,
-          timestamp: Date.now(),
-        };
-
-        this.messages.push(assistantMessage);
-        this.responseMessage = response.data.choices[0].message.content;
-
-        // Remove the loading message
-        const chatDisplay = document.getElementById("chatDisplay");
-        if (chatDisplay.contains(loadingMessage)) {
-          chatDisplay.removeChild(loadingMessage);
-        }
-
-        // Create the assistant message element
+        // 创建助手消息元素
         const botMessage = document.createElement("div");
         botMessage.className = "chat-message bot";
         botMessage.innerHTML = `
@@ -167,14 +155,35 @@ export default {
     <img src="https://img.icons8.com/ios/50/000000/robot.png" class="avatar" alt="ChatGPT">
     <span class="timestamp">${this.getCurrentTime()}</span>
   </div>
-  <div class="message-bubble">${this.renderMarkdown(this.responseMessage)}</div>
+  <div class="message-bubble" id="assistantMessage"></div>
 `;
-        chatDisplay.appendChild(botMessage);
+        document.getElementById("chatDisplay").appendChild(botMessage);
 
-        // Scroll to the bottom
-        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        // 移除加载消息
+        if (document.getElementById("chatDisplay").contains(loadingMessage)) {
+          document.getElementById("chatDisplay").removeChild(loadingMessage);
+        }
 
-        this.isSending = false; // 发送成功后启用按钮
+        let assistantMessageContent = '';
+        response.data.on('data', (chunk) => {
+          const chunkStr = chunk.toString();
+          assistantMessageContent += chunkStr;
+          document.getElementById("assistantMessage").innerText = assistantMessageContent;
+          // 滚动到底部
+          document.getElementById("chatDisplay").scrollTop = document.getElementById("chatDisplay").scrollHeight;
+        });
+
+        response.data.on('end', () => {
+          const assistantMessage = {
+            id: this.generateSpecificUUID(),
+            role: 'assistant',
+            content: assistantMessageContent,
+            timestamp: Date.now(),
+          };
+          this.messages.push(assistantMessage);
+          this.isSending = false; // 发送成功后启用按钮
+        });
+
       } catch (error) {
         console.error('请求失败:', error);
         this.responseMessage = '请求失败，请稍后再试。';
