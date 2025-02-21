@@ -26,56 +26,54 @@
 </template>
 
 <script>
-import {v4 as uuidv4} from 'uuid'; // 引入 uuid 库
-import axios from 'axios';
-import {apiClient} from '@/apiClient' // 使用全局定义的 apiClient
+import {apiClient,openaiClient} from '@/apiClient' // 使用全局定义的 apiClient
 import {marked} from 'marked';
 
 export default {
   data() {
     return {
-      apiKey: localStorage.getItem('token'),
       responseMessage: '',
       messages: [], // 添加 messages 数组
       newsDetail: {}, // 添加 newsDetail 对象
       userInput: '', // 添加 userInput 数据属性
-      isSending: false // 添加 isSending 属性
+      isSending: false, // 添加 isSending 属性
+      openAi: openaiClient, // 初始化为 null
+      hasFetchedNewsDetail: false, // 添加标志来防止重复调用
+      index: 0, // 添加 index 数据属性
     };
   },
   created() {
-    if (!localStorage.getItem('token')) {
-      this.getApiKey();
-    }
-    this.fetchNewsDetail(); // 在组件创建时获取新闻详情
+    this.fetchNewsDetail();
   },
   methods: {
     // 请求https://chat.bncic.com.cn:10000/api/v1/auths/signin获取里面的token
-    async getApiKey() {
-      try {
-        const headers = {
-          'Content-Type': 'application/json',
-          'Origin': 'https://chat.bncic.com.cn',
-          'Referer': 'https://chat.bncic.com.cn/auth'
-        };
-
-        const response = await axios.post(
-            'https://chat.bncic.com.cn/api/v1/auths/signin',
-            {"email":"","password":""},
-            { headers }
-        );
-        console.log(response.data)
-        localStorage.setItem('token', response.data.token, 3600 * 24)
-        this.apiKey = response.data.token;
-
-      } catch (error) {
-        console.error('获取API密钥失败:', error);
-      }
-    },
+    // async getApiKey() {
+    //   try {
+    //     const headers = {
+    //       'Content-Type': 'application/json',
+    //       'Origin': 'https://chat.bncic.com.cn',
+    //       'Referer': 'https://chat.bncic.com.cn/auth'
+    //     };
+    //
+    //     const response = await axios.post(
+    //         'https://chat.bncic.com.cn/api/v1/auths/signin',
+    //         {"email": "", "password": ""},
+    //         {headers}
+    //     );
+    //     // console.log(response.data)
+    //     // const token = response.data.token;
+    //     // const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 一天后过期
+    //     // localStorage.setItem('token', token);
+    //     // localStorage.setItem('tokenExpiration', expirationTime);
+    //
+    //   } catch (error) {
+    //     console.error('获取API密钥失败:', error);
+    //   }
+    // },
     async fetchNewsDetail() {
       try {
         const response = await apiClient.get(`v1/news/${this.$route.params.id}`);
         this.newsDetail = response.data;
-        console.log(response)
       } catch (error) {
         console.error('获取新闻详情失败:', error);
       }
@@ -87,7 +85,7 @@ export default {
           "4. 给出合理的投资事件和买入时机和抛出时机，并给出理由\n" +
           "5. 今天看到以下新闻内容：" + this.newsDetail.content + "\n" +
           "6. 从中能发现利好哪些股票？给出具体股票名字 没有就不给即可 适不适合低门槛我这个资金量的人玩？  ";
-      this.sendMessage();
+      await this.sendMessage();
     },
     async sendMessage() {
       if (this.userInput.trim() === "") return;
@@ -95,10 +93,8 @@ export default {
       this.isSending = true; // 发送开始时禁用按钮
 
       const userMessage = {
-        id: this.generateSpecificUUID(),
         role: 'user',
         content: this.userInput,
-        timestamp: Date.now(),
       };
 
       // Get the current time
@@ -115,41 +111,33 @@ export default {
 </div>
 <div class="message-bubble">${this.renderMarkdown(this.userInput)}</div>
 `;
-        document.getElementById("chatDisplay").appendChild(userMessageEle);
+      }
+      const chatDisplay = document.getElementById("chatDisplay");
+      if (chatDisplay) {
+        chatDisplay.appendChild(userMessageEle);
+      } else {
+        console.error('Element with id "chatDisplay" not found');
       }
 
       // Display the loading message
       const loadingMessage = document.createElement("div");
       loadingMessage.className = "loading-message";
       loadingMessage.innerHTML = "DeepSeek 正在处理中...";
-      document.getElementById("chatDisplay").appendChild(loadingMessage);
+      if (chatDisplay) {
+        chatDisplay.appendChild(loadingMessage);
+      } else {
+        console.error('Element with id "chatDisplay" not found');
+      }
 
       this.messages.push(userMessage);
       this.userInput = ''; // Clear the input box
 
       try {
-        if (!this.apiKey) {
-          await this.getApiKey(); // 确保在发送消息前获取 apiKey
-        }
-        const response = await axios.post(
-            'https://chat.bncic.com.cn/api/chat/completions',
-            {
-              model: 'deepseek-r1:32b',
-              messages: this.messages,
-              chat_id: 'local',
-              session_id: 'oQr5QznyHT-Um_KuAAMd',
-              id: uuidv4(),
-            },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`,
-                'Host': 'chat.bncic.com.cn:10000',
-                'Referer': 'https://chat.bncic.com.cn:10000/'
-              },
-              responseType: 'stream' // 设置响应类型为流
-            }
-        );
+        const completion = await this.openAi.chat.completions.create({
+          model: "qwen-long", // 此处以qwen-plus为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+          messages: this.messages,
+          stream: true,
+        });
 
         // 创建助手消息元素
         const botMessage = document.createElement("div");
@@ -159,34 +147,37 @@ export default {
     <img src="https://img.icons8.com/ios/50/000000/robot.png" class="avatar" alt="ChatGPT">
     <span class="timestamp">${this.getCurrentTime()}</span>
   </div>
-  <div class="message-bubble" id="assistantMessage"></div>
+  <div class="message-bubble" id="assistantMessage${++this.index}"></div>
 `;
-        document.getElementById("chatDisplay").appendChild(botMessage);
+        if (chatDisplay) {
+          chatDisplay.appendChild(botMessage);
+        } else {
+          console.error('Element with id "chatDisplay" not found');
+        }
 
         // 移除加载消息
-        if (document.getElementById("chatDisplay").contains(loadingMessage)) {
-          document.getElementById("chatDisplay").removeChild(loadingMessage);
+        if (chatDisplay && chatDisplay.contains(loadingMessage)) {
+          chatDisplay.removeChild(loadingMessage);
         }
 
         let assistantMessageContent = '';
-        response.data.on('data', (chunk) => {
-          const chunkStr = chunk.toString();
+        for await (const chunk of completion) {
+          const chunkStr = chunk.choices[0].delta.content || ''; // 确保正确获取 chunk 内容
           assistantMessageContent += chunkStr;
-          document.getElementById("assistantMessage").innerText = assistantMessageContent;
+          let assistantMessageElement = document.getElementById("assistantMessage"+this.index);
+          assistantMessageElement.innerHTML = this.renderMarkdown(assistantMessageContent);
           // 滚动到底部
-          document.getElementById("chatDisplay").scrollTop = document.getElementById("chatDisplay").scrollHeight;
-        });
+          if (chatDisplay) {
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+          }
+        }
 
-        response.data.on('end', () => {
-          const assistantMessage = {
-            id: this.generateSpecificUUID(),
-            role: 'assistant',
-            content: assistantMessageContent,
-            timestamp: Date.now(),
-          };
-          this.messages.push(assistantMessage);
-          this.isSending = false; // 发送成功后启用按钮
-        });
+        const assistantMessage = {
+          role: 'system',
+          content: assistantMessageContent,
+        };
+        this.messages.push(assistantMessage);
+        this.isSending = false; // 发送成功后启用按钮
 
       } catch (error) {
         console.error('请求失败:', error);
@@ -195,9 +186,9 @@ export default {
         this.isSending = false; // 发送失败后启用按钮
       }
     },
-    generateSpecificUUID() {
-      return uuidv4(); // 使用 uuid 库生成 UUID
-    },
+    // generateSpecificUUID() {
+    //   return uuidv4(); // 使用 uuid 库生成 UUID
+    // },
     renderMarkdown(content) {
       return marked(content);
     },
